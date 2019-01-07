@@ -3,6 +3,7 @@ build
 build-system/tasks/visual-diff/snippets/*.js
 build-system/babel-plugins/**/fixtures/**/*.js
 build-system/app-index/test/**/*.js
+test/cypress/plugins/index.js
 dist
 dist.3p
 dist.tools
