@@ -29,7 +29,6 @@ const {
   timedExecOrDie: timedExecOrDieBase,
   uploadDistExperimentOutput,
 } = require('./utils');
-const {isTravisPullRequestBuild} = require('../travis');
 const {runYarnChecks} = require('./yarn-checks');
 const FILENAME = 'dist-experiment.js';
 const timedExecOrDie = (cmd, unusedFileName) =>
