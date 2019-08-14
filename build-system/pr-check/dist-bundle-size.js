@@ -54,7 +54,7 @@ async function main() {
     timedExecOrDie('gulp update-packages');
     timedExecOrDie('gulp dist --fortesting');
     timedExecOrDie('gulp bundle-size --on_push_build');
-    uploadDistOutput(FILENAME);
+    await uploadDistOutput(FILENAME);
   } else {
     printChangeSummary(FILENAME);
     const buildTargets = determineBuildTargets(FILENAME);

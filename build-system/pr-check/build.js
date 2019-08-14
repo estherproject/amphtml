@@ -39,7 +39,7 @@ const FILELOGPREFIX = colors.bold(colors.yellow(`${FILENAME}:`));
 const timedExecOrDie = (cmd, unusedFileName) =>
   timedExecOrDieBase(cmd, FILENAME);
 
-function main() {
+async function main() {
   const startTime = startTimer(FILENAME, FILENAME);
   if (!runYarnChecks(FILENAME)) {
     stopTimedJob(FILENAME, startTime);
@@ -49,7 +49,7 @@ function main() {
   if (!isTravisPullRequestBuild()) {
     timedExecOrDie('gulp update-packages');
     timedExecOrDie('gulp build --fortesting');
-    uploadBuildOutput(FILENAME);
+    await uploadBuildOutput(FILENAME);
   } else {
     printChangeSummary(FILENAME);
     const buildTargets = determineBuildTargets(FILENAME);
@@ -61,7 +61,7 @@ function main() {
     ) {
       timedExecOrDie('gulp update-packages');
       timedExecOrDie('gulp build --fortesting');
-      uploadBuildOutput(FILENAME);
+      await uploadBuildOutput(FILENAME);
     } else {
       console.log(
         `${FILELOGPREFIX} Skipping`,

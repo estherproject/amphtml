@@ -43,7 +43,7 @@ async function main() {
   const startTime = startTimer(FILENAME, FILENAME);
 
   if (!isTravisPullRequestBuild()) {
-    downloadDistOutput(FILENAME);
+    await downloadDistOutput(FILENAME);
     timedExecOrDie('gulp update-packages');
 
     await startSauceConnect(FILENAME);
@@ -69,7 +69,7 @@ async function main() {
       stopTimer(FILENAME, FILENAME, startTime);
       return;
     }
-    downloadDistOutput(FILENAME);
+    await downloadDistOutput(FILENAME);
     timedExecOrDie('gulp update-packages');
     await startSauceConnect(FILENAME);
 

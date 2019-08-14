@@ -35,8 +35,10 @@ const FILENAME = 'dist-experiment.js';
 const timedExecOrDie = (cmd, unusedFileName) =>
   timedExecOrDieBase(cmd, FILENAME);
 
-function buildAndUploadExperiments_() {
-  Object.keys(experimentsConfig).forEach(experiment => {
+async function buildAndUploadExperiments_() {
+  const promises = [];
+
+  Object.keys(experimentsConfig).forEach(async experiment => {
     const config = experimentsConfig[experiment];
     if (config.command) {
       const command = config.command.replace(
@@ -46,9 +48,11 @@ function buildAndUploadExperiments_() {
       timedExecOrDie('gulp clean');
       timedExecOrDie('gulp update-packages');
       timedExecOrDie(command);
-      uploadDistExperimentOutput(FILENAME, experiment);
+      promises.push(await uploadDistExperimentOutput(FILENAME, experiment));
     }
   });
+
+  return Promise.all(promises);
 }
 
 async function main() {
@@ -57,13 +61,7 @@ async function main() {
     stopTimedJob(FILENAME, startTime);
     return;
   }
-
-  if (!isTravisPullRequestBuild()) {
-    buildAndUploadExperiments_();
-  } else {
-    //TODO(estherkim): remove this before merging
-    buildAndUploadExperiments_();
-  }
+  await buildAndUploadExperiments_();
   stopTimer(FILENAME, FILENAME, startTime);
 }
 

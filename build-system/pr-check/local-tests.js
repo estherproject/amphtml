@@ -37,11 +37,11 @@ const FILELOGPREFIX = colors.bold(colors.yellow(`${FILENAME}:`));
 const timedExecOrDie = (cmd, unusedFileName) =>
   timedExecOrDieBase(cmd, FILENAME);
 
-function main() {
+async function main() {
   const startTime = startTimer(FILENAME, FILENAME);
 
   if (!isTravisPullRequestBuild()) {
-    downloadBuildOutput(FILENAME);
+    await downloadBuildOutput(FILENAME);
     timedExecOrDie('gulp update-packages');
     timedExecOrDie('gulp integration --nobuild --headless --coverage');
     timedExecOrDie('gulp unit --nobuild --headless --coverage');
@@ -65,7 +65,7 @@ function main() {
       return;
     }
 
-    downloadBuildOutput(FILENAME);
+    await downloadBuildOutput(FILENAME);
     timedExecOrDie('gulp update-packages');
 
     if (buildTargets.has('RUNTIME') || buildTargets.has('UNIT_TEST')) {

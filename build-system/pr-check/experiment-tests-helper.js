@@ -30,7 +30,7 @@ process.on('message', async ({experiment, port}) => {
 
   console.log('Done. Running', cyan(experiment), 'tests...');
   timedExecOrDie('gulp clean');
-  downloadDistExperimentOutput(FILENAME, experiment);
+  await downloadDistExperimentOutput(FILENAME, experiment);
   timedExecOrDie('gulp update-packages');
   //timedExecOrDie('gulp integration --nobuild --compiled --headless');
   timedExecOrDie('gulp e2e --nobuild --headless');

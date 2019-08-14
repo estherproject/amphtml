@@ -17,6 +17,7 @@
 
 const colors = require('ansi-colors');
 const requestPromise = require('request-promise');
+const sleepPromise = require('sleep-promise');
 const {
   gitBranchCreationPoint,
   gitBranchName,
@@ -238,7 +239,7 @@ function timedExecOrDie(cmd, fileName = 'utils.js') {
  * @param {string} outputDirs
  * @private
  */
-function downloadOutput_(functionName, outputFileName, outputDirs) {
+async function downloadOutput_(functionName, outputFileName, outputDirs) {
   const fileLogPrefix = colors.bold(colors.yellow(`${functionName}:`));
   const buildOutputDownloadUrl = `${OUTPUT_STORAGE_LOCATION}/${outputFileName}`;
 
@@ -248,7 +249,7 @@ function downloadOutput_(functionName, outputFileName, outputDirs) {
       '...'
   );
   exec('echo travis_fold:start:download_results && echo');
-  authenticateWithStorageLocation_();
+  await authenticateWithStorageLocation_();
   execOrDie(`gsutil cp ${buildOutputDownloadUrl} ${outputFileName}`);
   exec('echo travis_fold:end:download_results');
 
@@ -272,7 +273,7 @@ function downloadOutput_(functionName, outputFileName, outputDirs) {
  * @param {string} outputDirs
  * @private
  */
-function uploadOutput_(functionName, outputFileName, outputDirs) {
+async function uploadOutput_(functionName, outputFileName, outputDirs) {
   const fileLogPrefix = colors.bold(colors.yellow(`${functionName}:`));
 
   console.log(
@@ -294,37 +295,52 @@ function uploadOutput_(functionName, outputFileName, outputDirs) {
       '...'
   );
   exec('echo travis_fold:start:upload_results && echo');
-  authenticateWithStorageLocation_();
+  await authenticateWithStorageLocation_();
   execOrDie(`gsutil -m cp -r ${outputFileName} ${OUTPUT_STORAGE_LOCATION}`);
   exec('echo travis_fold:end:upload_results');
 }
 
-function authenticateWithStorageLocation_() {
+/**
+ * Authenticate with GCS with a number of retries in the case that
+ *  there are multiple concurrent attempts, which locks the database.
+ * @param {number} retries
+ */
+async function authenticateWithStorageLocation_(retries = 1) {
+  if (retries == 0) {
+    throw new Error(`Unable to authenticate with ${OUTPUT_STORAGE_PROJECT_ID}`);
+  }
+
   decryptTravisKey_();
-  execOrDie(
-    'gcloud auth activate-service-account ' +
-      `--key-file ${OUTPUT_STORAGE_KEY_FILE}`
-  );
-  execOrDie(`gcloud config set account ${OUTPUT_STORAGE_SERVICE_ACCOUNT}`);
-  execOrDie('gcloud config set pass_credentials_to_gsutil true');
-  execOrDie(`gcloud config set project ${OUTPUT_STORAGE_PROJECT_ID}`);
-  execOrDie('gcloud config list');
+
+  try {
+    execOrDie(
+      'gcloud auth activate-service-account ' +
+        `--key-file ${OUTPUT_STORAGE_KEY_FILE}`
+    );
+    execOrDie(`gcloud config set account ${OUTPUT_STORAGE_SERVICE_ACCOUNT}`);
+    execOrDie('gcloud config set pass_credentials_to_gsutil true');
+    execOrDie(`gcloud config set project ${OUTPUT_STORAGE_PROJECT_ID}`);
+    execOrDie('gcloud config list');
+  } catch (ex) {
+    await sleepPromise(10000);
+    await authenticateWithStorageLocation_(--retries);
+  }
 }
 
 /**
  * Downloads and unzips build output from storage
  * @param {string} functionName
  */
-function downloadBuildOutput(functionName) {
-  downloadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
+async function downloadBuildOutput(functionName) {
+  await downloadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
 }
 
 /**
  * Downloads and unzips dist output from storage
  * @param {string} functionName
  */
-function downloadDistOutput(functionName) {
-  downloadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
+async function downloadDistOutput(functionName) {
+  await downloadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
 }
 
 /**
@@ -332,25 +348,25 @@ function downloadDistOutput(functionName) {
  * @param {string} functionName
  * @param {string} experiment
  */
-function downloadDistExperimentOutput(functionName, experiment) {
+async function downloadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
-  downloadOutput_(functionName, outputFile, OUTPUT_DIRS);
+  await downloadOutput_(functionName, outputFile, OUTPUT_DIRS);
 }
 
 /**
  * Zips and uploads the build output to a remote storage location
  * @param {string} functionName
  */
-function uploadBuildOutput(functionName) {
-  uploadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
+async function uploadBuildOutput(functionName) {
+  await uploadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
 }
 
 /**
  * Zips and uploads the dist output to a remote storage location
  * @param {string} functionName
  */
-function uploadDistOutput(functionName) {
-  uploadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
+async function uploadDistOutput(functionName) {
+  await uploadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
 }
 
 /**
@@ -358,19 +374,19 @@ function uploadDistOutput(functionName) {
  * @param {string} functionName
  * @param {string} experiment
  */
-function uploadDistExperimentOutput(functionName, experiment) {
+async function uploadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
-  uploadOutput_(functionName, outputFile, OUTPUT_DIRS);
+  await uploadOutput_(functionName, outputFile, OUTPUT_DIRS);
 }
 
 /**
  * Zips and uploads the dist output to a remote storage location
  * @param {string} functionName
  */
-function uploadDistOutputWithExamples(functionName) {
+async function uploadDistOutputWithExamples(functionName) {
   const outputDirsWithExamples =
     OUTPUT_DIRS + ' dist.tools/ examples/ test/manual/';
-  uploadOutput_(functionName, DIST_OUTPUT_FILE, outputDirsWithExamples);
+  await uploadOutput_(functionName, DIST_OUTPUT_FILE, outputDirsWithExamples);
 }
 
 /**
@@ -381,7 +397,7 @@ function uploadDistOutputWithExamples(functionName) {
 async function processAndUploadDistOutput(functionName) {
   await replaceUrls('test/manual');
   await replaceUrls('examples');
-  uploadDistOutputWithExamples(functionName);
+  await uploadDistOutputWithExamples(functionName);
   await signalDistUpload('success');
 }
 
