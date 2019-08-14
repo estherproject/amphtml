@@ -1,7 +1,5 @@
 language: node_js
 dist: xenial
-services:
-  - xvfb
 node_js:
   - "lts/*"
 python:
@@ -87,7 +85,7 @@ jobs:
         - build-system/sauce_connect/stop_sauce_connect.sh
         - ps -ef
     - stage: test
-      name: "[TEMPORARILY NON BLOCKING] End to End Tests"
+      name: "End to End Tests"
       script:
         - unbuffer node build-system/pr-check/e2e-tests.js
         - ps -ef
