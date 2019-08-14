@@ -21,6 +21,12 @@ const AmpdocEnvironment = {
   SHADOW_DEMO: 'shadow-demo',
 };
 
+/** @const {string} */
+const PORT = process.env.PORT || 8000;
+
+/** @const {string} */
+const HOST = `http://localhost:${PORT}`;
+
 const EnvironmentBehaviorMap = {
   [AmpdocEnvironment.SINGLE]: {
     ready(unusedController) {
@@ -41,9 +47,8 @@ const EnvironmentBehaviorMap = {
 
     url(url) {
       const defaultCaps = ['a2a', 'focus-rect', 'foo', 'keyboard', 'swipe'];
-      // TODO(estherkim): somehow allow non-8000 port and domain
       return (
-        `http://localhost:8000/examples/viewer.html#href=${url}` +
+        `${HOST}/examples/viewer.html#href=${url}` +
         `&caps=${defaultCaps.join(',')}`
       );
     },
@@ -60,8 +65,55 @@ const EnvironmentBehaviorMap = {
     },
 
     url(url) {
-      // TODO(estherkim): somehow allow non-8000 port and domain
-      return `http://localhost:8000/pwa#href=${url}`;
+      return `${HOST}/pwa#href=${url}`;
+    },
+  },
+
+  [AmpdocEnvironment.A4A_FIE]: {
+    async ready(controller) {
+      return controller
+        .findElement('amp-ad > iframe')
+        .then(frame => controller.switchToFrame(frame));
+    },
+
+    url(url) {
+      return url.replace(HOST, HOST + '/a4a');
+    },
+  },
+
+  [AmpdocEnvironment.A4A_INABOX]: {
+    async ready(controller) {
+      return controller
+        .findElement('#inabox-frame')
+        .then(frame => controller.switchToFrame(frame));
+    },
+
+    url(url) {
+      return url.replace(HOST, HOST + '/inabox');
+    },
+  },
+
+  [AmpdocEnvironment.A4A_INABOX_FRIENDLY]: {
+    async ready(controller) {
+      return controller
+        .findElement('#inabox-frame')
+        .then(frame => controller.switchToFrame(frame));
+    },
+
+    url(url) {
+      return url.replace(HOST, HOST + '/inabox-friendly');
+    },
+  },
+
+  [AmpdocEnvironment.A4A_INABOX_SAFEFRAME]: {
+    async ready(controller) {
+      return controller
+        .findElement('#inabox-frame')
+        .then(frame => controller.switchToFrame(frame));
+    },
+
+    url(url) {
+      return url.replace(HOST, HOST + '/inabox-safeframe');
     },
   },
 };
@@ -100,11 +152,13 @@ class AmpDriver {
    * Navigate the browser to a URL that will display the given url in the
    * given environment.
    * @param {!AmpdocEnvironment} environment
-   * @param {string} url
+   * @param {string} testUrl
    */
-  async navigateToEnvironment(environment, url) {
+  async navigateToEnvironment(environment, testUrl) {
+    const url = new URL(testUrl);
+    url.port = PORT;
     const ampEnv = EnvironmentBehaviorMap[environment];
-    await this.controller_.navigateTo(ampEnv.url(url));
+    await this.controller_.navigateTo(ampEnv.url(url.toString()));
     await ampEnv.ready(this.controller_);
   }
 }

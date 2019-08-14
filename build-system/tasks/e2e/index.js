@@ -29,7 +29,7 @@ const {reportTestStarted} = require('../report-test-status');
 const {watch} = require('gulp');
 
 const HOST = 'localhost';
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const WEBSERVER_TIMEOUT_RETRIES = 10;
 const SLOW_TEST_THRESHOLD_MS = 2500;
 const TEST_RETRIES = 2;

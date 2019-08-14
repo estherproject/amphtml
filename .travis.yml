@@ -95,12 +95,7 @@ jobs:
       name: "Dist Experiment Tests"
       script:
         - unbuffer node build-system/pr-check/experiment-tests.js
-      after_script:
-        - build-system/sauce_connect/stop_sauce_connect.sh
       if: type = pull_request #change to type = push before merging
-  allow_failures:
-    - script:
-      - unbuffer node build-system/pr-check/e2e-tests.js
 cache:
   directories:
     - node_modules

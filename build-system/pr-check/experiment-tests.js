@@ -21,45 +21,69 @@
  * This is run during the CI stage = test; job = experiments tests.
  */
 
+const childProcess = require('child_process');
 const experimentsConfig = require('../global-configs/experiments-config.json');
-const {
-  downloadDistExperimentOutput,
-  startTimer,
-  startSauceConnect,
-  stopTimer,
-  stopSauceConnect,
-  timedExecOrDie: timedExecOrDieBase,
-} = require('./utils');
-const {isTravisPullRequestBuild} = require('../travis');
-
+const {cyan} = require('ansi-colors');
+const {startTimer, stopTimer} = require('./utils');
 const FILENAME = 'experiment-tests.js';
-const timedExecOrDie = (cmd, unusedFileName) =>
-  timedExecOrDieBase(cmd, FILENAME);
 
+/**
+ * Runs a suite of tests for each experiment in parallel child
+ * processes. Prints stdout at the very end for each process.
+ * @return {Promise<void>}
+ */
 async function runExperimentTests_() {
-  await startSauceConnect(FILENAME);
+  const promises = [];
   Object.keys(experimentsConfig).forEach(experiment => {
     const config = experimentsConfig[experiment];
-    if (config.command) {
-      timedExecOrDie('gulp clean');
-      downloadDistExperimentOutput(FILENAME, experiment);
-      timedExecOrDie('gulp update-packages');
-      timedExecOrDie('gulp integration --nobuild --compiled --saucelabs');
-      timedExecOrDie('gulp e2e --nobuild --headless');
+
+    if (!config.command) {
+      return;
     }
+
+    let resolver;
+    promises.push(
+      new Promise(resolverIn => {
+        resolver = resolverIn;
+      })
+    );
+    console.log('Starting tests for', cyan(experiment), '...');
+    const child = childProcess.fork(
+      'build-system/pr-check/experiment-tests-helper.js',
+      {silent: true}
+    );
+
+    const output = [];
+    const errors = [];
+    child.send({
+      experiment,
+      port: config.port,
+    });
+    child.stdout.on('data', data => {
+      output.push(data);
+    });
+    child.stderr.on('data', data => {
+      errors.push(data);
+    });
+
+    child.on('exit', exitCode => {
+      console.log('');
+      output.forEach(o => {
+        process.stdout.write(o);
+      });
+      errors.forEach(e => {
+        process.stderr.write(e);
+      });
+      console.log(cyan(experiment), 'exited with code', cyan(exitCode));
+      resolver();
+    });
   });
-  stopSauceConnect(FILENAME);
+  return Promise.all(promises);
 }
 
 async function main() {
   const startTime = startTimer(FILENAME, FILENAME);
-
-  if (!isTravisPullRequestBuild()) {
-    await runExperimentTests_();
-  } else {
-    //TODO(estherkim): remove this before merging
-    await runExperimentTests_();
-  }
+  await runExperimentTests_();
   stopTimer(FILENAME, FILENAME, startTime);
 }
 

@@ -42,6 +42,7 @@ const {replaceUrls} = require('./app-utils');
 
 const upload = multer();
 
+const PORT = process.env.PORT || 8000;
 const TEST_SERVER_PORT = process.env.SERVE_PORT;
 
 app.use(bodyParser.text());
@@ -702,7 +703,7 @@ app.use('/impression-proxy/', (req, res) => {
   // tracking_url: URL that should be requested to track click
   // gclid: The conversion tracking value
   const body = {
-    'location': 'localhost:8000/examples/?gclid=1234&foo=bar&example=123',
+    'location': `localhost:${PORT}/examples/?gclid=1234&foo=bar&example=123`,
     'tracking_url': 'tracking_url',
     'gclid': '1234',
   };
@@ -1144,7 +1145,7 @@ app.get('/dist/sw(.max)?.js', (req, res, next) => {
         'self.AMP_CONFIG = {v: "99' +
         n +
         '",' +
-        'cdnUrl: "http://localhost:8000/dist"};' +
+        `cdnUrl: "http://localhost:${PORT}/dist"};` +
         file;
       res.setHeader('Content-Type', 'application/javascript');
       res.setHeader('Date', new Date().toUTCString());
