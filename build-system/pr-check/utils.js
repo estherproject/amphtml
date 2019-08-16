@@ -318,16 +318,14 @@ async function authenticateWithStorageLocation_(retries = 1) {
 
   decryptTravisKey_();
 
-  try {
-    execOrDie(
-      'gcloud auth activate-service-account ' +
-        `--key-file ${OUTPUT_STORAGE_KEY_FILE}`
-    );
-    execOrDie(`gcloud config set account ${OUTPUT_STORAGE_SERVICE_ACCOUNT}`);
-    execOrDie('gcloud config set pass_credentials_to_gsutil true');
-    execOrDie(`gcloud config set project ${OUTPUT_STORAGE_PROJECT_ID}`);
-    execOrDie('gcloud config list');
-  } catch (ex) {
+  const process = execWithError(
+    'gcloud auth activate-service-account ' +
+      `--key-file ${OUTPUT_STORAGE_KEY_FILE} && ` +
+      `gcloud config set account ${OUTPUT_STORAGE_SERVICE_ACCOUNT} && ` +
+      'gcloud config set pass_credentials_to_gsutil true && ' +
+      `gcloud config set project ${OUTPUT_STORAGE_PROJECT_ID}`
+  );
+  if (process.error) {
     await sleepPromise(10000);
     await authenticateWithStorageLocation_(--retries);
   }
