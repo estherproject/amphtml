@@ -245,30 +245,31 @@ async function downloadOutput_(functionName, outputFileName, outputDirs) {
   const fileLogPrefix = colors.bold(colors.yellow(`${functionName}:`));
   const buildOutputDownloadUrl = `${OUTPUT_STORAGE_LOCATION}/${outputFileName}`;
   const dirsToUnzip = outputDirs.split(' ');
+  const time = Date.now();
 
   console.log(
     `${fileLogPrefix} Downloading build output from ` +
       colors.cyan(buildOutputDownloadUrl) +
       '...'
   );
-  exec('echo travis_fold:start:download_results && echo');
+  exec(`echo travis_fold:start:download_results_${time} && echo`);
   await authenticateWithStorageLocation_();
   execOrDie(`gsutil cp ${buildOutputDownloadUrl} ${outputFileName}`);
-  exec('echo travis_fold:end:download_results');
+  exec(`echo travis_fold:end:download_results_${time}`);
 
   console.log(
     `${fileLogPrefix} Extracting ` + colors.cyan(outputFileName) + '...'
   );
-  exec('echo travis_fold:start:unzip_results && echo');
+  exec(`echo travis_fold:start:unzip_results_${time} && echo`);
   dirsToUnzip.forEach(dir => {
     execOrDie(`unzip ${outputFileName} '${dir.replace('/', '/*')}'`);
   });
-  exec('echo travis_fold:end:unzip_results');
+  exec(`echo travis_fold:end:unzip_results_${time}`);
 
   console.log(fileLogPrefix, 'Verifying extracted files...');
-  exec('echo travis_fold:start:verify_unzip_results && echo');
+  exec(`echo travis_fold:start:verify_unzip_results_${time} && echo`);
   execOrDie(`ls -laR ${outputDirs}`);
-  exec('echo travis_fold:end:verify_unzip_results');
+  exec(`echo travis_fold:end:verify_unzip_results_${time}`);
 }
 
 /**
@@ -371,7 +372,8 @@ async function uploadBuildOutput(functionName) {
  * @param {string} functionName
  */
 async function uploadDistOutput(functionName) {
-  await uploadOutput_(functionName, DIST_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
+  const distOutputDirs = `${BUILD_OUTPUT_DIRS} ${APP_SERVING_DIRS}`;
+  await uploadOutput_(functionName, DIST_OUTPUT_FILE, distOutputDirs);
 }
 
 /**
@@ -382,15 +384,6 @@ async function uploadDistOutput(functionName) {
 async function uploadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
   await uploadOutput_(functionName, outputFile, BUILD_OUTPUT_DIRS);
-}
-
-/**
- * Zips and uploads the dist output to a remote storage location
- * @param {string} functionName
- */
-function uploadDistOutput(functionName) {
-  const distOutputDirs = `${BUILD_OUTPUT_DIRS} ${APP_SERVING_DIRS}`;
-  uploadOutput_(functionName, DIST_OUTPUT_FILE, distOutputDirs);
 }
 
 /**
