@@ -337,7 +337,7 @@ async function authenticateWithStorageLocation_(retries = 1) {
  * @param {string} functionName
  */
 async function downloadBuildOutput(functionName) {
-  await downloadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
+  await downloadOutput_(functionName, BUILD_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -345,7 +345,7 @@ async function downloadBuildOutput(functionName) {
  * @param {string} functionName
  */
 async function downloadDistOutput(functionName) {
-  await downloadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
+  await downloadOutput_(functionName, DIST_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -355,9 +355,7 @@ async function downloadDistOutput(functionName) {
  */
 async function downloadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
-  await downloadOutput_(functionName, outputFile, OUTPUT_DIRS);
-function downloadDistOutput(functionName) {
-  downloadOutput_(functionName, DIST_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
+  await downloadOutput_(functionName, outputFile, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -365,7 +363,7 @@ function downloadDistOutput(functionName) {
  * @param {string} functionName
  */
 async function uploadBuildOutput(functionName) {
-  await uploadOutput_(functionName, BUILD_OUTPUT_FILE, OUTPUT_DIRS);
+  await uploadOutput_(functionName, BUILD_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -373,7 +371,7 @@ async function uploadBuildOutput(functionName) {
  * @param {string} functionName
  */
 async function uploadDistOutput(functionName) {
-  await uploadOutput_(functionName, DIST_OUTPUT_FILE, OUTPUT_DIRS);
+  await uploadOutput_(functionName, DIST_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -383,7 +381,7 @@ async function uploadDistOutput(functionName) {
  */
 async function uploadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
-  await uploadOutput_(functionName, outputFile, OUTPUT_DIRS);
+  await uploadOutput_(functionName, outputFile, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -403,7 +401,7 @@ function uploadDistOutput(functionName) {
 async function processAndUploadDistOutput(functionName) {
   await replaceUrls('test/manual');
   await replaceUrls('examples');
-  await uploadDistOutputWithExamples(functionName);
+  await uploadDistOutput(functionName);
   await signalDistUpload('success');
 }
 
