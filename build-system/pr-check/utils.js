@@ -42,7 +42,9 @@ const DIST_OUTPUT_FILE = isTravisBuild()
   ? `amp_dist_${travisBuildNumber()}.zip`
   : '';
 
-const OUTPUT_DIRS = 'build/ dist/ dist.3p/ EXTENSIONS_CSS_MAP';
+const BUILD_OUTPUT_DIRS = 'build/ dist/ dist.3p/ EXTENSIONS_CSS_MAP';
+const APP_SERVING_DIRS = 'dist.tools/ examples/ test/manual/';
+
 const OUTPUT_STORAGE_LOCATION = 'gs://amp-travis-builds';
 const OUTPUT_STORAGE_KEY_FILE = 'sa-travis-key.json';
 const OUTPUT_STORAGE_PROJECT_ID = 'amp-travis-build-storage';
@@ -242,6 +244,7 @@ function timedExecOrDie(cmd, fileName = 'utils.js') {
 async function downloadOutput_(functionName, outputFileName, outputDirs) {
   const fileLogPrefix = colors.bold(colors.yellow(`${functionName}:`));
   const buildOutputDownloadUrl = `${OUTPUT_STORAGE_LOCATION}/${outputFileName}`;
+  const dirsToUnzip = outputDirs.split(' ');
 
   console.log(
     `${fileLogPrefix} Downloading build output from ` +
@@ -257,7 +260,9 @@ async function downloadOutput_(functionName, outputFileName, outputDirs) {
     `${fileLogPrefix} Extracting ` + colors.cyan(outputFileName) + '...'
   );
   exec('echo travis_fold:start:unzip_results && echo');
-  execOrDie(`unzip -o ${outputFileName}`);
+  dirsToUnzip.forEach(dir => {
+    execOrDie(`unzip ${outputFileName} '${dir.replace('/', '/*')}'`);
+  });
   exec('echo travis_fold:end:unzip_results');
 
   console.log(fileLogPrefix, 'Verifying extracted files...');
@@ -351,6 +356,8 @@ async function downloadDistOutput(functionName) {
 async function downloadDistExperimentOutput(functionName, experiment) {
   const outputFile = DIST_OUTPUT_FILE.replace('.zip', `_${experiment}.zip`);
   await downloadOutput_(functionName, outputFile, OUTPUT_DIRS);
+function downloadDistOutput(functionName) {
+  downloadOutput_(functionName, DIST_OUTPUT_FILE, BUILD_OUTPUT_DIRS);
 }
 
 /**
@@ -383,10 +390,9 @@ async function uploadDistExperimentOutput(functionName, experiment) {
  * Zips and uploads the dist output to a remote storage location
  * @param {string} functionName
  */
-async function uploadDistOutputWithExamples(functionName) {
-  const outputDirsWithExamples =
-    OUTPUT_DIRS + ' dist.tools/ examples/ test/manual/';
-  await uploadOutput_(functionName, DIST_OUTPUT_FILE, outputDirsWithExamples);
+function uploadDistOutput(functionName) {
+  const distOutputDirs = `${BUILD_OUTPUT_DIRS} ${APP_SERVING_DIRS}`;
+  uploadOutput_(functionName, DIST_OUTPUT_FILE, distOutputDirs);
 }
 
 /**
