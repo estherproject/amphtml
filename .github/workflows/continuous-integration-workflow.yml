@@ -1,5 +1,7 @@
 name: Cross Browser Tests
-on: [pull_request] # specify master branch?
+on: pull_request
+  branches:
+    - master
 
 jobs:
   ubuntu_tests:
@@ -8,6 +10,13 @@ jobs:
     steps:
       - name: hello ubuntu
         run: echo 'hello ubuntu'
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: yarn
+      - run: node build-system/pr-check/build.js 
   windows_tests:
     name: Windows Tests
     runs-on: windows-latest
