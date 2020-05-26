@@ -43,8 +43,7 @@ jobs:
         with:
           node-version: 12
       - run: yarn
-      - name: Something with gulp
-        run: sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}        
-        run: yarn global remove gulp
-        run: yarn global add gulp-cli
+      - run: sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}        
+      - run: yarn global remove gulp
+      - run: yarn global add gulp-cli
       - run: node build-system/pr-check/cross-browser-tests.js
