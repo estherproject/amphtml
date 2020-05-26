@@ -60,7 +60,7 @@ async function main() {
     buildTargets.has('FLAG_CONFIG') ||
     buildTargets.has('INTEGRATION_TEST')
   ) {
-    timedExecOrDie('gulp integration --nobuild --compiled');
+    timedExecOrDie('gulp integration --nobuild --compiled --headless');
     // timedExecOrDie(
     //     'gulp integration --nobuild --compiled --saucelabs --beta'
     // );
