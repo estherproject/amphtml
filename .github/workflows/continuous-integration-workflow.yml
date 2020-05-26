@@ -1,0 +1,22 @@
+name: Cross Browser Tests
+on: [pull_request] # specify master branch?
+
+jobs:
+  ubuntu_tests:
+    name: Ubuntu Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: hello ubuntu
+        run: echo 'hello ubuntu'
+  windows_tests:
+    name: Windows Tests
+    runs-on: windows-latest
+    steps:
+      - name: hello windows
+        run: echo 'hello windows'
+  macos_tests:
+    name: macOS Tests
+    runs-on: macos-latest
+    steps:
+      - name: hello macos
+        run: echo 'hello macos'
