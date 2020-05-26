@@ -1,5 +1,8 @@
 name: Cross Browser Tests
 on: 
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
@@ -9,15 +12,14 @@ jobs:
     name: Ubuntu Tests
     runs-on: ubuntu-latest
     steps:
-      - name: hello ubuntu
-        run: echo 'hello ubuntu'
-      - uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v2
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 12
       - run: yarn
-      - run: node build-system/pr-check/build.js 
+      - run: node build-system/pr-check/cross-browser-tests.js
   windows_tests:
     name: Windows Tests
     runs-on: windows-latest
