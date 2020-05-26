@@ -42,5 +42,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+      - name: Update npm permissions
+        run: sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
       - run: yarn
       - run: node build-system/pr-check/cross-browser-tests.js

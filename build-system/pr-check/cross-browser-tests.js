@@ -17,7 +17,6 @@
 
 const colors = require('ansi-colors');
 const {
-  printChangeSummary,
   startTimer,
   stopTimer,
   timedExecOrDie: timedExecOrDieBase,
@@ -31,7 +30,6 @@ const timedExecOrDie = (cmd) => timedExecOrDieBase(cmd, FILENAME);
 async function main() {
   const startTime = startTimer(FILENAME, FILENAME);
 
-  printChangeSummary(FILENAME);
   const buildTargets = determineBuildTargets(FILENAME);
   if (
     !buildTargets.has('RUNTIME') &&
