@@ -23,7 +23,7 @@ const {
 } = require('./utils');
 const {determineBuildTargets} = require('./build-targets');
 
-const FILENAME = 'remote-tests.js';
+const FILENAME = 'cross-browser-tests.js';
 const FILELOGPREFIX = colors.bold(colors.yellow(`${FILENAME}:`));
 const timedExecOrDie = (cmd) => timedExecOrDieBase(cmd, FILENAME);
 
