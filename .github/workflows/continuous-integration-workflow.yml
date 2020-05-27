@@ -19,8 +19,12 @@ jobs:
         with:
           node-version: 12
       - run: yarn
-      - run: node build-system/pr-check/cross-browser-tests.js
-      - run: node build-system/pr-check/cross-browser-tests-2.js
+      - name: Run dist
+        run: node build-system/pr-check/cross-browser-tests.js
+      - name: Run unit tests  
+        run: node build-system/pr-check/cross-browser-tests-1.js
+      - name: Run integration tests
+        run: node build-system/pr-check/cross-browser-tests-2.js
   # windows_tests:
   #   name: Windows Tests
   #   runs-on: windows-latest
@@ -46,5 +50,9 @@ jobs:
       - run: yarn
       - run: sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}        
       - run: yarn global add gulp-cli
-      - run: node build-system/pr-check/cross-browser-tests.js
-      - run: node build-system/pr-check/cross-browser-tests-2.js
+      - name: Run dist
+        run: node build-system/pr-check/cross-browser-tests.js
+      - name: Run unit tests  
+        run: node build-system/pr-check/cross-browser-tests-1.js
+      - name: Run integration tests
+        run: node build-system/pr-check/cross-browser-tests-2.js
