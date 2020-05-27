@@ -70,5 +70,5 @@ const timedExecOrDie = (cmd) => timedExecOrDieBase(cmd, FILENAME);
 //main();
 
 const startTime = startTimer(FILENAME, FILENAME);
-timedExecOrDie('gulp unit --nobuild --headless --compiled');
+timedExecOrDie('gulp unit --nobuild --headless');
 stopTimer(FILENAME, FILENAME, startTime);
