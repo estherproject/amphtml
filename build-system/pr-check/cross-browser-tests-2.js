@@ -70,6 +70,5 @@ const timedExecOrDie = (cmd) => timedExecOrDieBase(cmd, FILENAME);
 //main();
 
 const startTime = startTimer(FILENAME, FILENAME);
-timedExecOrDie('gulp update-packages');
-timedExecOrDie('gulp build --fortesting');
+timedExecOrDie('gulp unit --nobuild --headless');
 stopTimer(FILENAME, FILENAME, startTime);
